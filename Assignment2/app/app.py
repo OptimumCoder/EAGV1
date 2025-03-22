@@ -6,6 +6,11 @@ from datetime import datetime, timedelta, date
 import numpy as np
 import os
 import tempfile
+import google.generativeai as genai
+
+# Configure Gemini
+genai.configure(api_key="AIzaSyAQSIEsB2zL5Ez0IPHMU9vCNHRStc8LvlA")
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 app = Flask(__name__)
 # Configure CORS to allow all origins
@@ -35,6 +40,24 @@ def bhavcopy_save_with_retry(date, directory, max_retries=3):
             else:
                 print(f"Attempt {attempt + 1} failed for {date}, retrying...")
     return False
+
+def analyze_stock_with_ai(stock_data):
+    """Use Gemini to analyze stock performance"""
+    if 'Error' in stock_data:
+        return None
+        
+    prompt = f"""Brief analysis of {stock_data['Symbol']}:
+Price: ₹{stock_data['Current Price']}, Change: {stock_data['Price Change (%)']}%
+Volume: {stock_data['Volume']}, Value: ₹{stock_data['Value']}
+Period: {stock_data['Date_Range']}
+Provide one concise sentence about price trend and trading activity."""
+    
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"AI Analysis error for {stock_data['Symbol']}: {str(e)}")
+        return None
 
 def get_stock_growth(symbol):
     try:
@@ -99,7 +122,7 @@ def get_stock_growth(symbol):
             total_value = sum(d['value'] for d in all_data)
             price_change = ((latest_data['close'] - all_data[0]['close']) / all_data[0]['close']) * 100
             
-            return {
+            result = {
                 'Symbol': symbol,
                 'Current Price': latest_data['close'],
                 'Open': latest_data['open'],
@@ -111,6 +134,13 @@ def get_stock_growth(symbol):
                 'Date_Range': f'{start_date} to {end_date} (Trading Days: {len(all_data)})',
                 'Days_With_Data': len(all_data)
             }
+            
+            # Add AI analysis
+            ai_analysis = analyze_stock_with_ai(result)
+            if ai_analysis:
+                result['AI_Analysis'] = ai_analysis
+                
+            return result
                 
     except Exception as e:
         print(f"Error processing {symbol}: {str(e)}")
@@ -123,17 +153,17 @@ def get_stock_growth(symbol):
 @app.route('/api/stocks')
 def get_stocks():
     nifty_symbols = [
-        # Top 10 Major Companies by Market Cap
+        # Top 10 Major Companies with reliable data
         "RELIANCE",    # Reliance Industries
         "TCS",        # Tata Consultancy Services
         "HDFCBANK",   # HDFC Bank
-        "INFY",       # Infosys
-        "ICICIBANK",  # ICICI Bank
-        "HINDUNILVR", # Hindustan Unilever
-        "ITC",        # ITC Limited
-        "SBIN",       # State Bank of India
         "BHARTIARTL", # Bharti Airtel
-        "KOTAKBANK"   # Kotak Mahindra Bank
+        "SBIN",       # State Bank of India
+        "LT",         # Larsen & Toubro
+        "ADANIENT",   # Adani Enterprises
+        "ASIANPAINT", # Asian Paints
+        "TATASTEEL",  # Tata Steel
+        "TITAN"       # Titan Company
     ]
     
     results = []
