@@ -30,15 +30,31 @@ def bhavcopy_save_with_retry(date, directory, max_retries=3):
     """Try to download bhavcopy with retries"""
     for attempt in range(max_retries):
         try:
+            print(f"Attempt {attempt + 1}: Downloading bhavcopy for {date}")
+            # Print the URL being accessed
+            date_str = date.strftime('%d%b%Y').upper()
+            print(f"Attempting to download data for date: {date_str}")
             bhavcopy_save(date, directory)
-            csv_file = os.path.join(directory, f"cm{date.strftime('%d%b%Y').upper()}bhav.csv")
+            csv_file = os.path.join(directory, f"cm{date_str}bhav.csv")
             if os.path.exists(csv_file):
+                print(f"Successfully downloaded and found CSV file: {csv_file}")
+                # Print first few lines of the CSV to verify content
+                try:
+                    with open(csv_file, 'r') as f:
+                        print(f"First few lines of {csv_file}:")
+                        for i, line in enumerate(f):
+                            if i < 3:  # Print first 3 lines
+                                print(line.strip())
+                except Exception as e:
+                    print(f"Error reading CSV file: {str(e)}")
                 return True
+            else:
+                print(f"CSV file not found after download: {csv_file}")
         except Exception as e:
             if attempt == max_retries - 1:  # Last attempt
                 print(f"Failed to download data for {date} after {max_retries} attempts: {str(e)}")
             else:
-                print(f"Attempt {attempt + 1} failed for {date}, retrying...")
+                print(f"Attempt {attempt + 1} failed for {date}: {str(e)}, retrying...")
     return False
 
 def analyze_stock_with_ai(stock_data):
@@ -61,14 +77,15 @@ Provide one concise sentence about price trend and trading activity."""
 
 def get_stock_growth(symbol):
     try:
-        # Use a 2-week date range
-        end_date = date(2024, 3, 20)  # Most recent date
-        start_date = end_date - timedelta(days=14)  # 2 weeks before
+        # Use dates from this week
+        end_date = date(2024, 3, 21)  # Thursday
+        start_date = date(2024, 3, 18)  # Monday
         
         print(f"Fetching data for {symbol} from {start_date} to {end_date}")
         
         # Create a temporary directory to store the bhavcopy files
         with tempfile.TemporaryDirectory() as temp_dir:
+            print(f"Created temporary directory: {temp_dir}")
             all_data = []
             current_date = start_date
             
@@ -81,26 +98,33 @@ def get_stock_growth(symbol):
                         current_date += timedelta(days=1)
                         continue
                         
-                    print(f"Fetching bhavcopy for date {current_date}")
+                    print(f"\nProcessing date: {current_date}")
                     if bhavcopy_save_with_retry(current_date, temp_dir):
                         csv_file = os.path.join(temp_dir, f"cm{current_date.strftime('%d%b%Y').upper()}bhav.csv")
                         
                         if os.path.exists(csv_file):
-                            df = pd.read_csv(csv_file)
-                            stock_data = df[df['SYMBOL'] == symbol].iloc[0] if not df[df['SYMBOL'] == symbol].empty else None
-                            
-                            if stock_data is not None:
-                                all_data.append({
-                                    'date': current_date.strftime('%Y-%m-%d'),
-                                    'close': float(stock_data['CLOSE']),
-                                    'open': float(stock_data['OPEN']),
-                                    'high': float(stock_data['HIGH']),
-                                    'low': float(stock_data['LOW']),
-                                    'volume': int(stock_data['TOTTRDQTY']),
-                                    'value': float(stock_data['TOTTRDVAL'])
-                                })
-                            else:
-                                print(f"No data found for {symbol} on {current_date}")
+                            try:
+                                df = pd.read_csv(csv_file)
+                                print(f"CSV loaded successfully. Shape: {df.shape}")
+                                stock_data = df[df['SYMBOL'] == symbol]
+                                print(f"Found {len(stock_data)} rows for {symbol}")
+                                
+                                if not stock_data.empty:
+                                    row = stock_data.iloc[0]
+                                    all_data.append({
+                                        'date': current_date.strftime('%Y-%m-%d'),
+                                        'close': float(row['CLOSE']),
+                                        'open': float(row['OPEN']),
+                                        'high': float(row['HIGH']),
+                                        'low': float(row['LOW']),
+                                        'volume': int(row['TOTTRDQTY']),
+                                        'value': float(row['TOTTRDVAL'])
+                                    })
+                                    print(f"Successfully added data for {symbol} on {current_date}")
+                                else:
+                                    print(f"No data found for {symbol} in {csv_file}")
+                            except Exception as e:
+                                print(f"Error reading data for {symbol} from {csv_file}: {str(e)}")
                     else:
                         print(f"Skipping date {current_date} due to download failure")
                     
@@ -157,9 +181,9 @@ def get_stocks():
         "RELIANCE",    # Reliance Industries
         "TCS",        # Tata Consultancy Services
         "HDFCBANK",   # HDFC Bank
-        "BHARTIARTL", # Bharti Airtel
-        "SBIN",       # State Bank of India
-        "LT",         # Larsen & Toubro
+        "WIPRO",      # Wipro Limited
+        "SUNPHARMA",  # Sun Pharmaceutical
+        "BAJFINANCE", # Bajaj Finance
         "ADANIENT",   # Adani Enterprises
         "ASIANPAINT", # Asian Paints
         "TATASTEEL",  # Tata Steel
