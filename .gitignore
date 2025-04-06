@@ -1,3 +1,7 @@
 examplepython/
 .venv
 .env
+bin
+lib
+pyvenv.cfg
+
