@@ -16,7 +16,7 @@ import os
 # from win32api import GetSystemMetrics
 
 # instantiate an MCP server client
-mcp = FastMCP("Calculator")
+mcp = FastMCP("Math_And_OS_Agent")
 
 # DEFINE TOOLS
 
@@ -254,9 +254,7 @@ async def add_text_in_existing_rectangle(text: str) -> dict:
 
 @mcp.tool()
 async def open_powerpoint_app() -> dict:
-    """
-    Opens the PowerPoint application on macOS using Spotlight and pyautogui.
-    """
+    """Opens the PowerPoint application on macOS using Spotlight and pyautogui."""
     try:
     # Step 1: Open Spotlight
         pyautogui.hotkey("command", "space", interval=0.25)
@@ -297,10 +295,7 @@ async def open_powerpoint_app() -> dict:
 # pyautogui.FAILSAFE = True  # Move mouse to corner to abort if needed
 @mcp.tool()
 async def draw_rectangle_in_powerpoint() -> dict:
-        """
-        Draws a rectangle on the first slide using pyautogui.
-
-        """
+        """Draws a rectangle on the first slide using pyautogui."""
 
         # Step 3: Insert tab
         pyautogui.click(x=100, y=150)  # Click "Insert" tab
@@ -334,10 +329,7 @@ async def draw_rectangle_in_powerpoint() -> dict:
 
 @mcp.tool()
 async def add_text_in_existing_rectangle(text: str) -> dict:
-        """
-        Add text inside rectangle on powerpoint slide
-        
-        """
+        """Add text inside rectangle on powerpoint slide"""
 
         # Step 1: Click the center of the rectangle to activate the text box
         pyautogui.click(x=800, y=550)
