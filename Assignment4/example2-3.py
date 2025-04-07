@@ -158,10 +158,7 @@ def fibonacci_numbers(n: int) -> list:
 
 @mcp.tool()
 async def create_new_powerpoint() -> dict:
-
-    """
-    Opens the PowerPoint application on macOS using Spotlight and pyautogui.
-    """
+    """Opens the PowerPoint application on macOS using Spotlight and pyautogui."""
     try:
     # Step 1: Open Spotlight
         pyautogui.hotkey("command", "space", interval=0.25)
@@ -204,10 +201,7 @@ async def create_new_powerpoint() -> dict:
 # pyautogui.FAILSAFE = True  # Move mouse to corner to abort if needed
 
 async def draw_rectangle_in_powerpoint() -> dict:
-        """
-        Draws a rectangle on the first slide using pyautogui.
-
-        """
+        """Draws a rectangle on the first slide using pyautogui."""
         pyautogui.click(x=100, y=150)  # Click "Insert" tab
         time.sleep(0.5)
         # # Step 4: Open Shapes dropdown
@@ -239,10 +233,7 @@ async def draw_rectangle_in_powerpoint() -> dict:
 
 @mcp.tool()
 async def add_text_in_existing_rectangle(text: str) -> dict:
-        """
-        Clicks on an existing rectangle shape in PowerPoint and types text inside it.
-
-        """
+        """Clicks on an existing rectangle shape in PowerPoint and types text inside it."""
         time.sleep(2)  # Give user time to prepare
 
         # Step 1: Click the center of the rectangle to activate the text box
@@ -354,7 +345,7 @@ async def add_text_in_existing_rectangle(text: str) -> dict:
 
         # Step 2: Type the text
         for char in text:
-            pyautogui.typewrite(char)
+            pyautogui.write(char)
             time.sleep(1)
 
         # pyautogui.typewrite(text, interval=0.25)

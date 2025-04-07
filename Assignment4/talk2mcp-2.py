@@ -14,7 +14,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
-max_iterations = 7
+max_iterations = 6
 last_response = None
 iteration = 0
 iteration_response = []
@@ -145,9 +145,9 @@ DO NOT include any explanations or additional text.
 Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
 
                 query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. 
-                After you get the result, open the powerpoint application, draw a rectangle and write the result inside the rectangle"""
+                After you get the result, open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
                 print("Starting iteration loop...")
-                
+                1
                 # Use global iteration variables
                 global iteration, last_response
                 
