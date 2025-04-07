@@ -14,7 +14,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
-max_iterations = 3
+max_iterations = 7
 last_response = None
 iteration = 0
 iteration_response = []
@@ -59,7 +59,7 @@ async def main():
         print("Establishing connection to MCP server...")
         server_params = StdioServerParameters(
             command="python",
-            args=["example2.py"]
+            args=["example2-3.py"]
         )
 
         async with stdio_client(server_params) as (read, write):
@@ -117,7 +117,9 @@ async def main():
                 
                 print("Created system prompt...")
                 
-                system_prompt = f"""You are a math agent solving problems in iterations. You have access to various mathematical tools.
+                system_prompt = f"""You are an agent who can solve math problems and open OS applications and follow commands. 
+                You have access to various mathematical and application access tools. 
+                The answer to the math problem needs to sent as text to add inside the powerpoint slide
 
 Available tools:
 {tools_description}
@@ -142,7 +144,8 @@ Examples:
 DO NOT include any explanations or additional text.
 Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
 
-                query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. """
+                query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. 
+                After you get the result, open the powerpoint application, draw a rectangle and write the result inside the rectangle"""
                 print("Starting iteration loop...")
                 
                 # Use global iteration variables
@@ -268,33 +271,33 @@ Your entire response should be a single line starting with either FUNCTION_CALL:
 
                     elif response_text.startswith("FINAL_ANSWER:"):
                         print("\n=== Agent Execution Complete ===")
-                        result = await session.call_tool("open_paint")
-                        print(result.content[0].text)
+                        # result = await session.call_tool("open_paint")
+                        # print(result.content[0].text)
 
-                        # Wait longer for Paint to be fully maximized
-                        await asyncio.sleep(1)
+                        # # Wait longer for Paint to be fully maximized
+                        # await asyncio.sleep(1)
 
-                        # Draw a rectangle
-                        result = await session.call_tool(
-                            "draw_rectangle",
-                            arguments={
-                                "x1": 780,
-                                "y1": 380,
-                                "x2": 1140,
-                                "y2": 700
-                            }
-                        )
-                        print(result.content[0].text)
+                        # # Draw a rectangle
+                        # result = await session.call_tool(
+                        #     "draw_rectangle",
+                        #     arguments={
+                        #         "x1": 780,
+                        #         "y1": 380,
+                        #         "x2": 1140,
+                        #         "y2": 700
+                        #     }
+                        # )
+                        # print(result.content[0].text)
 
-                        # Draw rectangle and add text
-                        result = await session.call_tool(
-                            "add_text_in_paint",
-                            arguments={
-                                "text": response_text
-                            }
-                        )
-                        print(result.content[0].text)
-                        break
+                        # # Draw rectangle and add text
+                        # result = await session.call_tool(
+                        #     "add_text_in_paint",
+                        #     arguments={
+                        #         "text": response_text
+                        #     }
+                        # )
+                        # print(result.content[0].text)
+                        # break
 
                     iteration += 1
 

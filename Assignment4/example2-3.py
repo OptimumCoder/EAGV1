@@ -4,13 +4,16 @@ from mcp.server.fastmcp.prompts import base
 from mcp.types import TextContent
 from mcp import types
 from PIL import Image as PILImage
+import pyautogui
+import subprocess
 import math
 import sys
-from pywinauto.application import Application
-import win32gui
-import win32con
 import time
-from win32api import GetSystemMetrics
+import os
+# from pywinauto.application import Application
+# import win32gui
+# import win32con
+# from win32api import GetSystemMetrics
 
 # instantiate an MCP server client
 mcp = FastMCP("Calculator")
@@ -154,171 +157,382 @@ def fibonacci_numbers(n: int) -> list:
 
 
 @mcp.tool()
-async def draw_rectangle(x1: int, y1: int, x2: int, y2: int) -> dict:
-    """Draw a rectangle in Paint from (x1,y1) to (x2,y2)"""
-    global paint_app
+async def create_new_powerpoint() -> dict:
+
+    """
+    Opens the PowerPoint application on macOS using Spotlight and pyautogui.
+    """
     try:
-        if not paint_app:
-            return {
+    # Step 1: Open Spotlight
+        pyautogui.hotkey("command", "space", interval=0.25)
+        time.sleep(2)
+
+        # Step 2: Type 'PowerPoint'
+        pyautogui.typewrite('PowerPoint')
+        time.sleep(1)
+
+        # Step 3: Press Enter to launch the app
+        pyautogui.press('enter')
+        time.sleep(3)  # Wait for the app to fully open
+
+        pyautogui.hotkey('command', 'a')
+        time.sleep(1)
+
+        # Press delete to remove it
+        pyautogui.press('delete')
+        return {
                 "content": [
                     TextContent(
                         type="text",
-                        text="Paint is not open. Please call open_paint first."
+                        text=f"Powerpoint created"
                     )
                 ]
             }
-        
-        # Get the Paint window
-        paint_window = paint_app.window(class_name='MSPaintApp')
-        
-        # Get primary monitor width to adjust coordinates
-        primary_width = GetSystemMetrics(0)
-        
-        # Ensure Paint window is active
-        if not paint_window.has_focus():
-            paint_window.set_focus()
-            time.sleep(0.2)
-        
-        # Click on the Rectangle tool using the correct coordinates for secondary screen
-        paint_window.click_input(coords=(530, 82 ))
-        time.sleep(0.2)
-        
-        # Get the canvas area
-        canvas = paint_window.child_window(class_name='MSPaintView')
-        
-        # Draw rectangle - coordinates should already be relative to the Paint window
-        # No need to add primary_width since we're clicking within the Paint window
-        canvas.press_mouse_input(coords=(x1+2560, y1))
-        canvas.move_mouse_input(coords=(x2+2560, y2))
-        canvas.release_mouse_input(coords=(x2+2560, y2))
-        
-        return {
-            "content": [
-                TextContent(
-                    type="text",
-                    text=f"Rectangle drawn from ({x1},{y1}) to ({x2},{y2})"
-                )
-            ]
-        }
     except Exception as e:
         return {
             "content": [
                 TextContent(
                     type="text",
-                    text=f"Error drawing rectangle: {str(e)}"
+                    text=f"Error creating powerpoint file: {str(e)}"
                 )
             ]
         }
 
+
+
 @mcp.tool()
-async def add_text_in_paint(text: str) -> dict:
-    """Add text in Paint"""
-    global paint_app
-    try:
-        if not paint_app:
-            return {
+# pyautogui.FAILSAFE = True  # Move mouse to corner to abort if needed
+
+async def draw_rectangle_in_powerpoint() -> dict:
+        """
+        Draws a rectangle on the first slide using pyautogui.
+
+        """
+        pyautogui.click(x=100, y=150)  # Click "Insert" tab
+        time.sleep(0.5)
+        # # Step 4: Open Shapes dropdown
+        pyautogui.click(x=390, y=190)  # Click "Shapes"
+        time.sleep(0.5)
+
+        # # Step 5: Select Rectangle from dropdown
+        pyautogui.click(x=500, y=250)  # Click Rectangle
+        time.sleep(0.5)
+
+        # # Step 6: Draw the rectangle
+        pyautogui.moveTo(x=600, y=500)  # Starting point
+        pyautogui.mouseDown()
+        pyautogui.moveTo(x=1000, y=600)  # Ending point
+        pyautogui.mouseUp()
+
+        pyautogui.click(x=800, y=550)
+        time.sleep(2)
+
+        return {
                 "content": [
                     TextContent(
                         type="text",
-                        text="Paint is not open. Please call open_paint first."
+                        text=f"Drew a rectangle"
                     )
                 ]
             }
-        
-        # Get the Paint window
-        paint_window = paint_app.window(class_name='MSPaintApp')
-        
-        # Ensure Paint window is active
-        if not paint_window.has_focus():
-            paint_window.set_focus()
-            time.sleep(0.5)
-        
-        # Click on the Rectangle tool
-        paint_window.click_input(coords=(528, 92))
+
+
+@mcp.tool()
+async def add_text_in_existing_rectangle(text: str) -> dict:
+        """
+        Clicks on an existing rectangle shape in PowerPoint and types text inside it.
+
+        """
+        time.sleep(2)  # Give user time to prepare
+
+        # Step 1: Click the center of the rectangle to activate the text box
+        pyautogui.click(x=800, y=550)
         time.sleep(0.5)
-        
-        # Get the canvas area
-        canvas = paint_window.child_window(class_name='MSPaintView')
-        
-        # Select text tool using keyboard shortcuts
-        paint_window.type_keys('t')
-        time.sleep(0.5)
-        paint_window.type_keys('x')
-        time.sleep(0.5)
-        
-        # Click where to start typing
-        canvas.click_input(coords=(810, 533))
-        time.sleep(0.5)
-        
-        # Type the text passed from client
-        paint_window.type_keys(text)
-        time.sleep(0.5)
-        
-        # Click to exit text mode
-        canvas.click_input(coords=(1050, 800))
-        
+
+        # Step 2: Type the text
+        pyautogui.write(text, interval=0.05)
         return {
             "content": [
                 TextContent(
                     type="text",
-                    text=f"Text:'{text}' added successfully"
-                )
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [
-                TextContent(
-                    type="text",
-                    text=f"Error: {str(e)}"
+                    text=f"Added text inside the rectangle"
                 )
             ]
         }
 
+
 @mcp.tool()
-async def open_paint() -> dict:
-    """Open Microsoft Paint maximized on secondary monitor"""
-    global paint_app
+async def open_powerpoint_app() -> dict:
+    """
+    Opens the PowerPoint application on macOS using Spotlight and pyautogui.
+    """
     try:
-        paint_app = Application().start('mspaint.exe')
-        time.sleep(0.2)
-        
-        # Get the Paint window
-        paint_window = paint_app.window(class_name='MSPaintApp')
-        
-        # Get primary monitor width
-        primary_width = GetSystemMetrics(0)
-        
-        # First move to secondary monitor without specifying size
-        win32gui.SetWindowPos(
-            paint_window.handle,
-            win32con.HWND_TOP,
-            primary_width + 1, 0,  # Position it on secondary monitor
-            0, 0,  # Let Windows handle the size
-            win32con.SWP_NOSIZE  # Don't change the size
-        )
-        
-        # Now maximize the window
-        win32gui.ShowWindow(paint_window.handle, win32con.SW_MAXIMIZE)
-        time.sleep(0.2)
-        
+    # Step 1: Open Spotlight
+        pyautogui.hotkey("command", "space", interval=0.25)
+        time.sleep(2)
+
+        # Step 2: Type 'PowerPoint'
+        pyautogui.typewrite('PowerPoint')
+        time.sleep(1)
+
+        # Step 3: Press Enter to launch the app
+        pyautogui.press('enter')
+        time.sleep(3)  # Wait for the app to fully open
+
+        pyautogui.hotkey('command', 'a')
+        time.sleep(1)
+
+        # Press delete to remove it
+        pyautogui.press('delete')
         return {
-            "content": [
-                TextContent(
-                    type="text",
-                    text="Paint opened successfully on secondary monitor and maximized"
-                )
-            ]
-        }
+                "content": [
+                    TextContent(
+                        type="text",
+                        text=f"Powerpoint created"
+                    )
+                ]
+            }
     except Exception as e:
         return {
             "content": [
                 TextContent(
                     type="text",
-                    text=f"Error opening Paint: {str(e)}"
+                    text=f"Error creating powerpoint file: {str(e)}"
                 )
             ]
         }
+
+
+# pyautogui.FAILSAFE = True  # Move mouse to corner to abort if needed
+@mcp.tool()
+async def draw_rectangle_in_powerpoint() -> dict:
+        """
+        Draws a rectangle on the first slide using pyautogui.
+
+        """
+
+        # Step 3: Insert tab
+        pyautogui.click(x=100, y=150)  # Click "Insert" tab
+        time.sleep(0.5)
+        # # Step 4: Open Shapes dropdown
+        pyautogui.click(x=390, y=190)  # Click "Shapes"
+        time.sleep(0.5)
+
+        # # Step 5: Select Rectangle from dropdown
+        pyautogui.click(x=500, y=250)  # Click Rectangle
+        time.sleep(0.5)
+
+        # # Step 6: Draw the rectangle
+        pyautogui.moveTo(x=600, y=500)  # Starting point
+        pyautogui.mouseDown()
+        pyautogui.moveTo(x=1000, y=600)  # Ending point
+        pyautogui.mouseUp()
+
+        pyautogui.click(x=800, y=550)
+        time.sleep(2)
+
+        return {
+                "content": [
+                    TextContent(
+                        type="text",
+                        text=f"Drew a rectangle and added text"
+                    )
+                ]
+            }
+
+
+@mcp.tool()
+async def add_text_in_existing_rectangle(text: str) -> dict:
+        """
+        Add text inside rectangle on powerpoint slide
+        
+        """
+
+        # Step 1: Click the center of the rectangle to activate the text box
+        pyautogui.click(x=800, y=550)
+        time.sleep(2)
+
+        # Step 2: Type the text
+        for char in text:
+            pyautogui.typewrite(char)
+            time.sleep(1)
+
+        # pyautogui.typewrite(text, interval=0.25)
+        return {
+            "content": [
+                TextContent(
+                    type="text",
+                    text=f"Added text inside the rectangle"
+                )
+            ]
+        }
+
+# @mcp.tool()
+# async def draw_rectangle(x1: int, y1: int, x2: int, y2: int) -> dict:
+#     """Draw a rectangle in Paint from (x1,y1) to (x2,y2)"""
+#     global paint_app
+#     try:
+#         if not paint_app:
+#             return {
+#                 "content": [
+#                     TextContent(
+#                         type="text",
+#                         text="Paint is not open. Please call open_paint first."
+#                     )
+#                 ]
+#             }
+        
+#         # Get the Paint window
+#         paint_window = paint_app.window(class_name='MSPaintApp')
+        
+#         # Get primary monitor width to adjust coordinates
+#         primary_width = GetSystemMetrics(0)
+        
+#         # Ensure Paint window is active
+#         if not paint_window.has_focus():
+#             paint_window.set_focus()
+#             time.sleep(0.2)
+        
+#         # Click on the Rectangle tool using the correct coordinates for secondary screen
+#         paint_window.click_input(coords=(530, 82 ))
+#         time.sleep(0.2)
+        
+#         # Get the canvas area
+#         canvas = paint_window.child_window(class_name='MSPaintView')
+        
+#         # Draw rectangle - coordinates should already be relative to the Paint window
+#         # No need to add primary_width since we're clicking within the Paint window
+#         canvas.press_mouse_input(coords=(x1+2560, y1))
+#         canvas.move_mouse_input(coords=(x2+2560, y2))
+#         canvas.release_mouse_input(coords=(x2+2560, y2))
+        
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text=f"Rectangle drawn from ({x1},{y1}) to ({x2},{y2})"
+#                 )
+#             ]
+#         }
+#     except Exception as e:
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text=f"Error drawing rectangle: {str(e)}"
+#                 )
+#             ]
+#         }
+
+# @mcp.tool()
+# async def add_text_in_paint(text: str) -> dict:
+#     """Add text in Paint"""
+#     global paint_app
+#     try:
+#         if not paint_app:
+#             return {
+#                 "content": [
+#                     TextContent(
+#                         type="text",
+#                         text="Paint is not open. Please call open_paint first."
+#                     )
+#                 ]
+#             }
+        
+#         # Get the Paint window
+#         paint_window = paint_app.window(class_name='MSPaintApp')
+        
+#         # Ensure Paint window is active
+#         if not paint_window.has_focus():
+#             paint_window.set_focus()
+#             time.sleep(0.5)
+        
+#         # Click on the Rectangle tool
+#         paint_window.click_input(coords=(528, 92))
+#         time.sleep(0.5)
+        
+#         # Get the canvas area
+#         canvas = paint_window.child_window(class_name='MSPaintView')
+        
+#         # Select text tool using keyboard shortcuts
+#         paint_window.type_keys('t')
+#         time.sleep(0.5)
+#         paint_window.type_keys('x')
+#         time.sleep(0.5)
+        
+#         # Click where to start typing
+#         canvas.click_input(coords=(810, 533))
+#         time.sleep(0.5)
+        
+#         # Type the text passed from client
+#         paint_window.type_keys(text)
+#         time.sleep(0.5)
+        
+#         # Click to exit text mode
+#         canvas.click_input(coords=(1050, 800))
+        
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text=f"Text:'{text}' added successfully"
+#                 )
+#             ]
+#         }
+#     except Exception as e:
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text=f"Error: {str(e)}"
+#                 )
+#             ]
+#         }
+
+# @mcp.tool()
+# async def open_paint() -> dict:
+#     """Open Microsoft Paint maximized on secondary monitor"""
+#     global paint_app
+#     try:
+#         paint_app = Application().start('mspaint.exe')
+#         time.sleep(0.2)
+        
+#         # Get the Paint window
+#         paint_window = paint_app.window(class_name='MSPaintApp')
+        
+#         # Get primary monitor width
+#         primary_width = GetSystemMetrics(0)
+        
+#         # First move to secondary monitor without specifying size
+#         win32gui.SetWindowPos(
+#             paint_window.handle,
+#             win32con.HWND_TOP,
+#             primary_width + 1, 0,  # Position it on secondary monitor
+#             0, 0,  # Let Windows handle the size
+#             win32con.SWP_NOSIZE  # Don't change the size
+#         )
+        
+#         # Now maximize the window
+#         win32gui.ShowWindow(paint_window.handle, win32con.SW_MAXIMIZE)
+#         time.sleep(0.2)
+        
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text="Paint opened successfully on secondary monitor and maximized"
+#                 )
+#             ]
+#         }
+#     except Exception as e:
+#         return {
+#             "content": [
+#                 TextContent(
+#                     type="text",
+#                     text=f"Error opening Paint: {str(e)}"
+#                 )
+#             ]
+#         }
 # DEFINE RESOURCES
 
 # Add a dynamic greeting resource
