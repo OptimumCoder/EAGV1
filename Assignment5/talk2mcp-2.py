@@ -117,32 +117,70 @@ async def main():
                 
                 print("Created system prompt...")
                 
-                system_prompt = f"""You are an agent who can solve math problems and open OS applications and follow commands. 
-                You have access to various mathematical and application access tools. 
-                The answer to the math problem needs to sent as text to add inside the powerpoint slide
+#                 system_prompt = f"""You are an agent who can solve math problems and open OS applications and follow commands. 
+#                 You have access to various mathematical and application access tools. 
+#                 The answer to the math problem needs to sent as text to add inside the powerpoint slide
 
-Available tools:
-{tools_description}
+# Available tools:
+# {tools_description}
 
-You must respond with EXACTLY ONE line in one of these formats (no additional text):
-1. For function calls:
-   FUNCTION_CALL: function_name|param1|param2|...
+# You must respond with EXACTLY ONE line in one of these formats (no additional text):
+# 1. For function calls:
+#    FUNCTION_CALL: function_name|param1|param2|...
    
-2. For final answers:
-   FINAL_ANSWER: [number]
+# 2. For final answers:
+#    FINAL_ANSWER: [number]
 
-Important:
-- When a function returns multiple values, you need to process all of them
-- Only give FINAL_ANSWER when you have completed all necessary calculations
-- Do not repeat function calls with the same parameters
+# Important:
+# - When a function returns multiple values, you need to process all of them
+# - Only give FINAL_ANSWER when you have completed all necessary calculations
+# - Do not repeat function calls with the same parameters
 
-Examples:
-- FUNCTION_CALL: add|5|3
-- FUNCTION_CALL: strings_to_chars_to_int|INDIA
-- FINAL_ANSWER: [42]
+# Examples:
+# - FUNCTION_CALL: add|5|3
+# - FUNCTION_CALL: strings_to_chars_to_int|INDIA
+# - FINAL_ANSWER: [42]
 
-DO NOT include any explanations or additional text.
-Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
+# DO NOT include any explanations or additional text.
+# Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
+
+
+                system_prompt = f"""
+                You are an agent who can solve math problems and open OS applications, following commands. 
+                You have access to various mathematical tools and application access functions. The answer needs to be sent as text for inclusion in a PowerPoint slide.
+
+                Available tools:
+                {tools_description}
+
+                Instructions:
+                - Explicitly think through your reasoning step-by-step before providing an answer.
+                - Explain your thinking process briefly with each calculation or function call.
+                - Identify the type of reasoning used (e.g., arithmetic, logic).
+                - Ensure to self-check and verify intermediate steps for correctness.
+
+                Response Format:
+                1. For function calls:
+                    FUNCTION_CALL: function_name|param1|param2|...|REASONING_TYPE: [type]
+                    
+                2. For final answers with reasoning:
+                    FINAL_ANSWER: [number] | REASONING_SUMMARY: [brief explanation]
+
+                Important:
+                - When a function returns multiple values, process all of them.
+                - Only provide a FINAL_ANSWER when you have completed all necessary calculations and verified the steps.
+                - Do not repeat function calls with the same parameters.
+                
+                Examples:
+                - FUNCTION_CALL: add|5|3 | REASONING_TYPE: arithmetic
+                - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: lookup
+                - FINAL_ANSWER: [42] | REASONING_SUMMARY: Solved using addition
+
+                Error Handling:
+                - If uncertain, specify 'UNCERTAIN' and explain the reasoning.
+                - If a tool fails, note 'TOOL_FAILURE' and suggest an alternative approach or reattempt.
+
+                This structured prompt aims to ensure clarity in both processing and communication, supporting a step-by-step logical flow that can be easily followed or updated for further interactions."""
+
 
                 query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. 
                 After you get the result, open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
