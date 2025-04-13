@@ -14,7 +14,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
-max_iterations = 8
+max_iterations = 6
 last_response = None
 iteration = 0
 iteration_response = []
@@ -146,7 +146,7 @@ async def main():
 
 
                 system_prompt = f"""You are an agent who can solve math problems, open macOS applications using pyautogui. You have access to various mathematical, evaluation tools and application functions. 
-                Each step needs to be reasoned and evaluated, and the output of the mathematical problem to be sent as text for inclusion in a PowerPoint slide. 
+                Each step needs to be reasoned and verified, and the output of the mathematical problem to be sent as text for inclusion in a PowerPoint slide. 
 
                 Available tools:
                 {tools_description}
@@ -157,7 +157,6 @@ async def main():
                 - Show your reasoning steps.
                 - Explain your thinking process briefly with each calculation or function call.
                 - Identify the type of reasoning used (e.g., arithmetic, logic).
-                - Evaluate arithmetic expressions.
                 - Verify your answers.
                 - Only give FINAL_ANSWER when you have completed all calculations.
 
@@ -172,7 +171,8 @@ async def main():
                 Examples:
                 - FUNCTION_CALL: add|2|3| REASONING_TYPE: Arithmetic
                 - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: Entity Lookup
-                - FUNCTION_CALL: add_text_in_existing_rectangle|4.151842427567769e+33 | REASONING_TYPE: application
+                - FUNCTION_CALL: verify_solution| math.exp(1)+math.exp(2)| 10.107337927389695 | REASONING_TYPE: Verification
+                - FUNCTION_CALL: add_text_in_existing_rectangle|4.151842427567769e+33 | REASONING_TYPE: Application
                 - FINAL_ANSWER: [42] | REASONING_SUMMARY: Solved using addition
                 Error Handling:
                 - If uncertain, specify 'UNCERTAIN' and explain the reasoning.
@@ -181,7 +181,9 @@ async def main():
 
 
                 query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. 
-                After you get the result, evaluate and verify the solution. Then open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
+                After you get the arithmetic result, use verify method to validate the solution. 
+                After the result is successfully validated, open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
+
                 print("Starting iteration loop...")
                 1
                 # Use global iteration variables
