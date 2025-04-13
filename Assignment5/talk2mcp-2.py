@@ -14,7 +14,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
-max_iterations = 6
+max_iterations = 8
 last_response = None
 iteration = 0
 iteration_response = []
@@ -145,19 +145,22 @@ async def main():
 # Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
 
 
-                system_prompt = f"""You are an agent who can solve math problems, open macOS applications using pyautogui. You have access to various mathematical tools and application functions. 
-                Solve this Each step needs to be reasoned and verified, and the output of the mathematical problem to be sent as text for inclusion in a PowerPoint slide. 
+                system_prompt = f"""You are an agent who can solve math problems, open macOS applications using pyautogui. You have access to various mathematical, evaluation tools and application functions. 
+                Each step needs to be reasoned and evaluated, and the output of the mathematical problem to be sent as text for inclusion in a PowerPoint slide. 
 
                 Available tools:
                 {tools_description}
 
                 Instructions:
+                - Break down complex problems into steps
                 - Explicitly think through your reasoning step-by-step before providing an answer.
                 - Show your reasoning steps.
                 - Explain your thinking process briefly with each calculation or function call.
                 - Identify the type of reasoning used (e.g., arithmetic, logic).
+                - Evaluate arithmetic expressions.
                 - Verify your answers.
                 - Only give FINAL_ANSWER when you have completed all calculations.
+
 
                 Response Format:
                 1. For function calls:
@@ -165,14 +168,9 @@ async def main():
                     
                 2. For final answers with reasoning:
                     FINAL_ANSWER: [number] | REASONING_SUMMARY: [brief explanation]
-
-                Important:
-                - When a function returns multiple values, process all of them.
-                - Only provide a FINAL_ANSWER when you have completed all necessary calculations and verified the steps.
-                - Do not repeat function calls with the same parameters.
                 
                 Examples:
-                - FUNCTION_CALL: {"name": "add", "args": {"expression": "5 + 3"},  "REASONING_TYPE": "arithmetic"}
+                - FUNCTION_CALL: add|2|3| REASONING_TYPE: Arithmetic
                 - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: Entity Lookup
                 - FUNCTION_CALL: add_text_in_existing_rectangle|4.151842427567769e+33 | REASONING_TYPE: application
                 - FINAL_ANSWER: [42] | REASONING_SUMMARY: Solved using addition
@@ -183,7 +181,7 @@ async def main():
 
 
                 query = """Find the ASCII values of characters in INDIA and then return sum of exponentials of those values. 
-                After you get the result, open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
+                After you get the result, evaluate and verify the solution. Then open the powerpoint application, draw a rectangle and write the FINAL ANSWER inside the rectangle"""
                 print("Starting iteration loop...")
                 1
                 # Use global iteration variables
