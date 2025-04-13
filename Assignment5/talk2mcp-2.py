@@ -172,7 +172,7 @@ async def main():
                 - Do not repeat function calls with the same parameters.
                 
                 Examples:
-                - FUNCTION_CALL: add|5|3 | REASONING_TYPE: arithmetic
+                - FUNCTION_CALL: {"name": "add", "args": {"expression": "5 + 3"},  "REASONING_TYPE": "arithmetic"}
                 - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: Entity Lookup
                 - FUNCTION_CALL: add_text_in_existing_rectangle|4.151842427567769e+33 | REASONING_TYPE: application
                 - FINAL_ANSWER: [42] | REASONING_SUMMARY: Solved using addition
