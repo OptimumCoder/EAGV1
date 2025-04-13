@@ -145,18 +145,19 @@ async def main():
 # Your entire response should be a single line starting with either FUNCTION_CALL: or FINAL_ANSWER:"""
 
 
-                system_prompt = f"""
-                You are an agent who can solve math problems and open OS applications, following commands. 
-                You have access to various mathematical tools and application access functions. The answer needs to be sent as text for inclusion in a PowerPoint slide.
+                system_prompt = f"""You are an agent who can solve math problems, open macOS applications using pyautogui. You have access to various mathematical tools and application functions. 
+                Solve this Each step needs to be reasoned and verified, and the output of the mathematical problem to be sent as text for inclusion in a PowerPoint slide. 
 
                 Available tools:
                 {tools_description}
 
                 Instructions:
                 - Explicitly think through your reasoning step-by-step before providing an answer.
+                - Show your reasoning steps.
                 - Explain your thinking process briefly with each calculation or function call.
                 - Identify the type of reasoning used (e.g., arithmetic, logic).
-                - Ensure to self-check and verify intermediate steps for correctness.
+                - Verify your answers.
+                - Only give FINAL_ANSWER when you have completed all calculations.
 
                 Response Format:
                 1. For function calls:
@@ -172,13 +173,12 @@ async def main():
                 
                 Examples:
                 - FUNCTION_CALL: add|5|3 | REASONING_TYPE: arithmetic
-                - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: lookup
+                - FUNCTION_CALL: strings_to_chars_to_int|INDIA | REASONING_TYPE: Entity Lookup
+                - FUNCTION_CALL: add_text_in_existing_rectangle|4.151842427567769e+33 | REASONING_TYPE: application
                 - FINAL_ANSWER: [42] | REASONING_SUMMARY: Solved using addition
-
                 Error Handling:
                 - If uncertain, specify 'UNCERTAIN' and explain the reasoning.
                 - If a tool fails, note 'TOOL_FAILURE' and suggest an alternative approach or reattempt.
-
                 This structured prompt aims to ensure clarity in both processing and communication, supporting a step-by-step logical flow that can be easily followed or updated for further interactions."""
 
 
