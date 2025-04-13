@@ -155,6 +155,33 @@ def fibonacci_numbers(n: int) -> list:
         fib_sequence.append(fib_sequence[-1] + fib_sequence[-2])
     return fib_sequence[:n]
 
+@mcp.tool()
+def show_reasoning_steps(steps: list) -> list[str]:
+    """Display step-by-step reasoning process"""
+    print(f"CALLED: show_reasoning_steps({steps})")
+    return steps
+
+@mcp.tool()
+def evaluate_math(expression: str) -> float:
+    """Safely evaluate a mathematical expression"""
+    print(f"CALLED: evaluate_math({expression})")
+    try:
+        # In production, use a safer evaluation method
+        result = float(eval(expression))
+        return result
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+@mcp.tool()
+def verify_solution(original: str, solution: float) -> bool:
+    """Verify if a solution is correct"""
+    print(f"CALLED: verify_solution({original}, {solution})")
+    try:
+        expected = float(eval(original))
+        return abs(expected - solution) < 1e-10
+    except:
+        return False
+
 
 @mcp.tool()
 async def create_new_powerpoint() -> dict:
