@@ -89,7 +89,7 @@ async def main():
         await agent.initialize()
         
         # Example input
-        input_data = "Analyze the current market trends for AI technologies"
+        input_data = "Discuss price wars of hail taxi cabs and what should a customer do to beat that"
         
         # Process input
         result = await agent.process_input(input_data)
