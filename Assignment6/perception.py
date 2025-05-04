@@ -31,7 +31,6 @@ class PerceptionModule:
                     "word_count": len(content.split())
                 }
             )
-
             return perception
 
         except Exception as e:
