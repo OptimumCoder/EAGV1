@@ -47,16 +47,29 @@ document.getElementById('searchBtn').addEventListener('click', () => {
   })
   .then(res => res.json())
   .then(data => {
+    console.log("Search response:", data);
     const results = document.getElementById('results');
     results.innerHTML = "";
-    if (!data.urls || data.urls.length === 0) {
+    if (!data.results || data.results.length === 0) {
       const li = document.createElement('li');
       li.textContent = "No results found.";
       results.appendChild(li);
     } else {
-      data.urls.forEach(url => {
+      data.results.forEach(result => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+        li.innerHTML = `<a href="#">${result.url}</a><br><small>${result.chunk.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</small>`;
+        li.querySelector('a').addEventListener('click', (e) => {
+          e.preventDefault();
+          // Open the URL in a new tab and pass the chunk to highlight
+          chrome.tabs.create({ url: result.url }, (tab) => {
+            // Wait for the tab to load, then inject the highlight script
+            chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              func: highlightText,
+              args: [result.chunk]
+            });
+          });
+        });
         results.appendChild(li);
       });
     }
@@ -66,3 +79,15 @@ document.getElementById('searchBtn').addEventListener('click', () => {
     document.getElementById('status').textContent = "Error searching.";
   });
 });
+
+// Highlight function to be injected
+function highlightText(text) {
+  // Escape regex special characters
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  const bodyText = document.body.innerHTML;
+  const safeText = escapeRegExp(text.trim());
+  const regex = new RegExp(safeText, 'gi');
+  document.body.innerHTML = bodyText.replace(regex, match => `<mark style="background: yellow;">${match}</mark>`);
+}

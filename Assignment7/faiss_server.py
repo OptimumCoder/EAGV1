@@ -15,6 +15,12 @@ EMBED_URL = "http://localhost:11434/api/embeddings"
 EMBED_MODEL = "nomic-embed-text"
 CHUNK_SIZE = 256
 CHUNK_OVERLAP = 40
+
+ROOT = Path(__file__).parent.resolve()
+INDEX_CACHE = ROOT / "faiss_index"
+INDEX_FILE = INDEX_CACHE / "index.bin"
+
+
 chunk_metadata = []  # List of dicts: {'url': ..., 'chunk': ...}
 dimension = 768      # Embedding size for 'all-MiniLM-L6-v2'
 index = faiss.IndexFlatL2(dimension)  # FAISS index
@@ -50,10 +56,6 @@ def get_embedding(text: str) -> np.ndarray:
 
 @app.route('/extract', methods=['POST'])
 def extract():
-    ROOT = Path(__file__).parent.resolve()
-    INDEX_CACHE = ROOT / "faiss_index"
-    INDEX_FILE = INDEX_CACHE / "index.bin"
-
 
     data = request.json
     url = data['url']
@@ -85,15 +87,18 @@ def extract():
 def search():
     data = request.json
     query = data['query']
+    print(f"Received search query: {query}")
+    print(f"Number of chunks indexed: {len(chunk_metadata)}")
+
+    index = faiss.read_index(str(ROOT / "faiss_index" / "index.bin"))
 
     # Compute embedding for query
     query_embedding = get_embedding(query).reshape(1, -1)
-    # query_embedding = np.array(query_embedding).astype('float32')
 
     # Search in FAISS
-    k = 5  # Number of results to return
+    k = 3  # Number of results to return
     if index.ntotal == 0:
-        return jsonify({'urls': []})
+        return jsonify({'results': []})
 
     D, I = index.search(query_embedding, k)
     results = []
@@ -101,11 +106,13 @@ def search():
     for idx in I[0]:
         if idx < len(chunk_metadata):
             url = chunk_metadata[idx]['url']
+            chunk = chunk_metadata[idx]['chunk']
             if url not in seen_urls:
-                results.append(url)
+                results.append({'url': url, 'chunk': chunk})
                 seen_urls.add(url)
-
-    return jsonify({'urls': results})
+    print(f"Number of chunks indexed: {len(chunk_metadata)}")
+    print(f"Search results: {results}")
+    return jsonify({'results': results})
 
 if __name__ == '__main__':
     app.run(port=5000)
