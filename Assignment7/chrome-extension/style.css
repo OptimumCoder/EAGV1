@@ -1,0 +1,5 @@
+body { font-family: Arial, sans-serif; width: 300px; }
+button { margin: 5px 0; width: 100%; }
+input { width: 80%; }
+ul { padding-left: 20px; }
+#status { margin-top: 10px; color: green; }
